@@ -7,30 +7,7 @@
 #include <cctype>
 #include "Depot.h"
 
-static void showMenu() {
-std::cout <<
-"\nMenu:\n"
-"1. Sort Drones By Name\n"
-"2. Sort Drones By ID\n"
-"3. Sort Drones By Position\n"
-"4. Randomize Drone Order\n"
-"5. Add a drone\n"
-"6. Retrieve a drone\n"
-"7. Search Drone By Name\n"
-"8. Search Drone By ID\n"
-"9. Write Depot to File\n"
-"10. Swap Drone Data\n"
-"11. Insert Drone Task\n"
-"12. Copy-Paste Drone\n"
-"13. Display All Drones’ names\n"
-"14. SortDroneDataAscending (per-drone tasks)\n"
-"15. SortDroneDataDescending (per-drone tasks)\n"
-"16. Quit\n"
-"17. Export Local-Opt Routes (Nearest-Neighbor)\n"
-"18. Export Global-Opt Routes (Exact)\n";
-}
-
-// Reads one drone’s block from file
+// Reads each drone one by one from input file
 static bool readOneDrone(std::istream& in, Drone& outD) {
     std::string line;
 
@@ -151,10 +128,32 @@ static void loadInitial(const std::string& filename, Depot& depot) {
     std::cout << "Loaded " << count << " drone(s) from " << filename << ".\n";
 }
 
-int main(){
+static void showMenu() {
+std::cout <<
+"\nMenu:\n"
+"1. Sort Drones By Name\n"
+"2. Sort Drones By ID\n"
+"3. Sort Drones By Position\n"
+"4. Randomize Drone Order\n"
+"5. Add a drone\n"
+"6. Retrieve a drone\n"
+"7. Search Drone By Name\n"
+"8. Search Drone By ID\n"
+"9. Write Depot to File\n"
+"10. Swap Drone Data\n"
+"11. Insert Drone Task\n"
+"12. Copy-Paste Drone\n"
+"13. Display All Drones’ names\n"
+"14. SortDroneDataAscending (per-drone tasks)\n"
+"15. SortDroneDataDescending (per-drone tasks)\n"
+"16. Quit\n"
+"17. Export Local-Opt Routes (Nearest-Neighbor)\n"
+"18. Export Global-Opt Routes (Exact)\n";
+}
+
+int main()
 Depot depot;
 loadInitial("Droneinput.txt", depot);
-        
         int choice = 0;
         while (true) {
 Depot depot;
