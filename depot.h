@@ -25,6 +25,7 @@ public:
 
     void swapDroneData(int index1, int index2);
     void copyDrone(int index1, int index2);
+    void writeDepottoFile(const std::string& filename) const;
 
     void insertDroneTask(int droneIdx, int taskIdx, const std::string& task, int taskPosX, int taskPosY);
 
