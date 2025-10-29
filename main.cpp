@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <cctype>
-#include "depot.h"
+#include "Depot.h"
 
 // Reads each drone one by one from input file
 static bool readOneDrone(std::istream& in, Drone& outD) {
