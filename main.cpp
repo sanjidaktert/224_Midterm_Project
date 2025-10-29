@@ -1,7 +1,11 @@
 // drone_project_224.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <cctype>
+#include "Depot.h"
 
 static void showMenu() {
 std::cout <<
@@ -26,9 +30,70 @@ std::cout <<
 "18. Export Global-Opt Routes (Exact)\n";
 }
 
-int main()
-int choice = 0;
-while (true) {
+// Reads one drone’s block from file
+static bool readOneDrone(std::istream& in, Drone& outD) {
+    std::string line;
+
+    // Read name
+    if (!std::getline(in, line)) return false;
+    while (line.empty() && std::getline(in, line));  // skip blanks
+    if (line.empty()) return false;
+    outD.setName(line);
+
+    // Read ID
+    if (!std::getline(in, line)) return false;
+    {
+        std::istringstream iss(line);
+        int id;
+        if (!(iss >> id)) return false;
+        outD.setID(id);
+    }
+
+    // Init position
+    if (!std::getline(in, line)) return false;
+    {
+        std::istringstream iss(line);
+        int x, y;
+        if (!(iss >> x >> y)) return false;
+        outD.setInitPosition(x, y);
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        if (!std::getline(in, line)) return false;
+        if (line.empty()) { --i; continue; }
+        std::istringstream iss(line);
+        std::string task;
+        int tx, ty;
+        if (!(iss >> task >> tx >> ty)) return false;
+        outD.setTaskAndPosition(i, task, tx, ty);
+    }
+}
+
+// Loads drones from file into Depot
+static void loadInitial(const std::string& filename, Depot& depot) {
+    std::ifstream fin(filename);
+    if (!fin) {
+        std::cerr << "Could not open " << filename << ". Starting empty.\n";
+        return;
+    }
+
+    int count = 0;
+    while (count < 10) {  // Amount of drones 
+        Drone d;
+        if (!readOneDrone(fin, d)) break;
+        depot.addDrone(d);
+        ++count;
+    }
+
+    std::cout << "Loaded " << count << " drone(s) from " << filename << ".\n";
+}
+
+int main(){
+Depot depot;
+loadInitial("Droneinput.txt", depot);
+        
+        int choice = 0;
+        while (true) {
         showMenu();
         std::cout << "Enter choice: ";
         if (!(std::cin >> choice)) break;
