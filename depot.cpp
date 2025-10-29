@@ -1,6 +1,7 @@
 #include "depot.h"
 #include <iostream>
 #include <fstream>
+#include <limits>
 #include <algorithm> // Only for swap
 #include <cmath>
 #include <random>
@@ -131,4 +132,110 @@ void Depot::insertDroneTask(int droneIdx, int taskIdx, const std::string& task, 
     drones[droneIdx].setTaskPosition(taskIdx, pos);
     std::cout << "Inserted task \"" << task << "\" at index "
               << taskIdx << " for drone " << droneIdx << ".\n";
+}
+
+static double dist2d(int ax, int ay, int bx, int by) {
+    double dx = double(ax - bx), dy = double(ay - by);
+    return std::sqrt(dx*dx + dy*dy);
+}
+
+void Depot::exportLocalOptRoutes(const std::string& filename) const {
+    std::ofstream ofs(filename);
+    if (!ofs) {
+        std::cout << "Error opening " << filename << "\n";
+        return;
+    }
+
+    for (int dIdx = 0; dIdx < (int)drones.size(); ++dIdx) {
+        const Drone& d = drones[dIdx];
+
+        // grab start and the 5 tasks
+        int start[2]; d.getInitPosition(start);
+        int tpos[5][2];
+        std::string tname[5];
+        for (int i = 0; i < 5; ++i) {
+            d.getTask(i, tname[i]);
+            d.getTaskPosition(i, tpos[i]);
+        }
+
+        bool used[5] = {false,false,false,false,false};
+        int order[5];
+        int cx = start[0], cy = start[1];
+        double total = 0.0;
+
+        for (int step = 0; step < 5; ++step) {
+            int best = -1;
+            double bestd = std::numeric_limits<double>::infinity();
+            for (int k = 0; k < 5; ++k) if (!used[k]) {
+                double dd = dist2d(cx, cy, tpos[k][0], tpos[k][1]);
+                if (dd < bestd) { bestd = dd; best = k; }
+            }
+            used[best] = true;
+            order[step] = best;
+            total += bestd;
+            cx = tpos[best][0]; cy = tpos[best][1];
+        }
+        total += dist2d(cx, cy, start[0], start[1]);
+
+        ofs << "Drone " << dIdx << " (" << d.getName() << ")\n";
+        ofs << "  Route (Nearest-Neighbor): ";
+        for (int i = 0; i < 5; ++i) {
+            ofs << tname[order[i]];
+            if (i < 4) ofs << " -> ";
+        }
+        ofs << " -> START\n";
+        ofs << "  Total Distance: " << total << "\n\n";
+    }
+
+    std::cout << "Wrote local-opt routes to " << filename << "\n";
+}
+
+void Depot::exportGlobalOptRoutes(const std::string& filename) const {
+    std::ofstream ofs(filename);
+    if (!ofs) {
+        std::cout << "Error opening " << filename << "\n";
+        return;
+    }
+
+    for (int dIdx = 0; dIdx < (int)drones.size(); ++dIdx) {
+        const Drone& d = drones[dIdx];
+
+        int start[2]; d.getInitPosition(start);
+        int tpos[5][2]; std::string tname[5];
+        for (int i = 0; i < 5; ++i) {
+            d.getTask(i, tname[i]);
+            d.getTaskPosition(i, tpos[i]);
+        }
+
+        int perm[5] = {0,1,2,3,4};
+        int bestPerm[5] = {0,1,2,3,4};
+        double bestDist = std::numeric_limits<double>::infinity();
+
+        do {
+            double cur = 0.0;
+            int cx = start[0], cy = start[1];
+            for (int i = 0; i < 5; ++i) {
+                int k = perm[i];
+                cur += dist2d(cx, cy, tpos[k][0], tpos[k][1]);
+                cx = tpos[k][0]; cy = tpos[k][1];
+            }
+            cur += dist2d(cx, cy, start[0], start[1]); // return to start
+
+            if (cur < bestDist) {
+                bestDist = cur;
+                for (int i = 0; i < 5; ++i) bestPerm[i] = perm[i];
+            }
+        } while (std::next_permutation(perm, perm+5));
+
+        ofs << "Drone " << dIdx << " (" << d.getName() << ")\n";
+        ofs << "  Route (Exact Shortest): ";
+        for (int i = 0; i < 5; ++i) {
+            ofs << tname[bestPerm[i]];
+            if (i < 4) ofs << " -> ";
+        }
+        ofs << " -> START\n";
+        ofs << "  Total Distance: " << bestDist << "\n\n";
+    }
+
+    std::cout << "Wrote global-opt routes to " << filename << "\n";
 }
