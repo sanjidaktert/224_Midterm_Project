@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <cctype>
-#include "Depot.h"
+#include "depot.h"
 
 static void showMenu() {
 std::cout <<
